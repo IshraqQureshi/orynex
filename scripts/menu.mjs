@@ -1,0 +1,15 @@
+import { chromium } from 'playwright-core';
+const b = await chromium.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox'] });
+const p = await (await b.newContext({ viewport: { width: 390, height: 844 } })).newPage();
+await p.goto('http://localhost:4102/', { waitUntil: 'networkidle' });
+const t = p.getByRole('button', { name: 'Open menu' });
+console.log('toggle visible', await t.isVisible(), 'expanded', await t.getAttribute('aria-expanded'));
+await t.click(); await p.waitForTimeout(600);
+console.log('after open expanded', await p.getByRole('button', { name: 'Close menu' }).getAttribute('aria-expanded'), 'body locked', await p.evaluate(() => document.body.classList.contains('menu-open')));
+await p.screenshot({ path: '/tmp/diff/menu-open.png' });
+await p.keyboard.press('Escape'); await p.waitForTimeout(600);
+console.log('after Esc expanded', await p.getByRole('button', { name: 'Open menu' }).getAttribute('aria-expanded'));
+await p.getByRole('button', { name: 'Open menu' }).click(); await p.waitForTimeout(500);
+await p.locator('#mobile-menu a', { hasText: 'Services' }).click(); await p.waitForTimeout(900);
+console.log('after link click menu-open', await p.evaluate(() => document.body.classList.contains('menu-open')), 'scrollY', await p.evaluate(() => Math.round(scrollY)));
+await b.close();
